@@ -1,6 +1,15 @@
 use crate::info::OSData;
 use std::env;
 use std::process;
+use std::vec;
+use comfy_table::{
+    presets::UTF8_FULL,
+    Attribute,
+    Cell,
+    Color,
+    Row,
+    Table,
+};
 
 pub mod info;
 pub mod utils;
@@ -33,12 +42,29 @@ fn main() {
         }
     };
     let data = OSData::new(&unit);
-    println!(r#"
-{}@{}
-OS: {}
-Shell: {}
-Mem: {}
-    "#,
-data.host, data.user, data.os, data.shell, data.mem);
+    let mut table = Table::new();
+    table.load_preset(UTF8_FULL);
+
+    table.add_row(Row::from(vec![
+        Cell::new(&data.host).fg(Color::Cyan).add_attribute(Attribute::Bold),
+        Cell::new(&data.user).fg(Color::Green),
+    ]));
+
+    table.add_row(Row::from(vec![
+        Cell::new("OS").fg(Color::Blue).add_attribute(Attribute::Bold),
+        Cell::new(&data.os),
+    ]));
+
+    table.add_row(Row::from(vec![
+        Cell::new("Shell").fg(Color::Yellow).add_attribute(Attribute::Bold),
+        Cell::new(&data.shell),
+    ]));
+
+    table.add_row(Row::from(vec![
+        Cell::new("MEM").fg(Color::Magenta).add_attribute(Attribute::Bold),
+        Cell::new(&data.mem),
+    ]));
+
+    println!("{table}");
 }
 

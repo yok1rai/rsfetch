@@ -1,5 +1,6 @@
-use std::env;
 use crate::utils::read;
+use std::env;
+use std::process;
 
 pub enum Unit {
     Gb,
@@ -8,12 +9,12 @@ pub enum Unit {
 }
 
 impl Unit {
-    fn get(unit: &str) -> Self {
+    fn get(unit: &str) -> Option<Self> {
         match unit.trim().to_lowercase().as_str() {
-            "gb" => Unit::Gb,
-            "mb" => Unit::Mb,
-            "kb" => Unit::Kb,
-            _ => Unit::Mb,
+            "gb" => Some(Unit::Gb),
+            "mb" => Some(Unit::Mb),
+            "kb" => Some(Unit::Kb),
+            _ => None,
         }
     }
 }
@@ -33,7 +34,10 @@ impl OSData {
         let user = get_user();
         let os = get_os();
         let shell = get_shell();
-        let mem_unit = Unit::get(unit);
+        let mem_unit = match Unit::get(unit) {
+            Some(unit) => unit,
+            None => process::exit(1)
+        };
         let mem = get_mem(&mem_unit);
         OSData { host, user, os, shell, mem, mem_unit }
     }
