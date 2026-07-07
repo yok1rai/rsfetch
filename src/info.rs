@@ -1,24 +1,41 @@
 use std::env;
-
 use crate::utils::read;
 
-#[derive(Debug)]
+pub enum Unit {
+    Gb,
+    Mb,
+    Kb,
+}
+
+impl Unit {
+    fn get(unit: &str) -> Self {
+        match unit.trim().to_lowercase().as_str() {
+            "gb" => Unit::Gb,
+            "mb" => Unit::Mb,
+            "kb" => Unit::Kb,
+            _ => Unit::Mb,
+        }
+    }
+}
+
 pub struct OSData {
     pub host: String,
     pub user: String,
     pub os: String,
     pub shell: String,
     pub mem: String,
+    pub mem_unit: Unit
 }
 
 impl OSData {
-    pub fn new() -> Self {
+    pub fn new(unit: &str) -> Self {
         let host = get_hostname();
         let user = get_user();
         let os = get_os();
         let shell = get_shell();
-        let mem = get_mem();
-        OSData { host, user, os, shell, mem }
+        let mem_unit = Unit::get(unit);
+        let mem = get_mem(&mem_unit);
+        OSData { host, user, os, shell, mem, mem_unit }
     }
 }
 
@@ -61,7 +78,7 @@ fn get_os() -> String {
     }
 }
 
-fn get_mem() -> String {
+fn get_mem(unit: &Unit) -> String {
     match read("/proc/meminfo") {
         Ok(content) => {
             let mut total = 0;
@@ -86,8 +103,12 @@ fn get_mem() -> String {
             }
 
             let used = total - available;
-
-            format!("{} MB / {} MB", total / 1024, used / 1024)
+            let total_and_used = match unit {
+                Unit::Kb => (total, used, "KB"),
+                Unit::Mb => (total / 1024, used / 1024, "MB"),
+                Unit::Gb => (total / 1024 / 1024, used / 1024 / 1024, "GB"),
+            };
+            format!("{} {} / {} {}", total_and_used.0, total_and_used.2, total_and_used.1, total_and_used.2)
         }
         Err(_) => "Unknown".to_string()
     }
