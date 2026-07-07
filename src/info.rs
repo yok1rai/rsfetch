@@ -25,7 +25,8 @@ pub struct OSData {
     pub os: String,
     pub shell: String,
     pub mem: String,
-    pub mem_unit: Unit
+    pub mem_unit: Unit,
+    pub cpu: String
 }
 
 impl OSData {
@@ -39,7 +40,8 @@ impl OSData {
             None => process::exit(1)
         };
         let mem = get_mem(&mem_unit);
-        OSData { host, user, os, shell, mem, mem_unit }
+        let cpu =  get_cpu();
+        OSData { host, user, os, shell, mem, mem_unit, cpu }
     }
 }
 
@@ -116,4 +118,20 @@ fn get_mem(unit: &Unit) -> String {
         }
         Err(_) => "Unknown".to_string()
     }
+}
+
+fn get_cpu() -> String {
+    match read("/proc/cpuinfo") {
+        Ok(content) => {
+            for line in content.lines() {
+                if line.starts_with("model name") {
+                    return line
+                        .replace("model name", "")
+                        .replace(":", "");
+                }
+            }
+            "Unknown".to_string()
+        },
+        Err(_) => "Unknown".to_string()
+     }
 }

@@ -9,6 +9,7 @@ use comfy_table::{
     Color,
     Row,
     Table,
+    ContentArrangement
 };
 
 pub mod info;
@@ -45,8 +46,10 @@ fn main() {
     let mut table = Table::new();
     table.load_preset(UTF8_FULL);
 
+    table.set_width(80);
+    table.set_content_arrangement(ContentArrangement::Dynamic);
     table.add_row(Row::from(vec![
-        Cell::new(&data.host).fg(Color::Cyan).add_attribute(Attribute::Bold),
+        Cell::new(format!("{}", &data.host)).fg(Color::Cyan).add_attribute(Attribute::Bold),
         Cell::new(&data.user).fg(Color::Green),
     ]));
 
@@ -65,6 +68,10 @@ fn main() {
         Cell::new(&data.mem),
     ]));
 
+    table.add_row(Row::from(vec![
+        Cell::new("CPU").fg(Color::DarkYellow).add_attribute(Attribute::Bold),
+        Cell::new(&data.cpu)
+    ]));
     println!("{table}");
 }
 
